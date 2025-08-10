@@ -1,4 +1,4 @@
-name: Expo Build CI
+name: Expo EAS CI/CD
 
 on:
   push:
@@ -7,40 +7,34 @@ on:
 
 jobs:
   build:
-    name: Build Expo App
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Tjek kode ud
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Installer Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Skift til den version du bruger
+          node-version: 18
 
-      - name: Install dependencies
+      - name: Installer EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Installer afhængigheder
         run: npm install
 
-      - name: Install Expo CLI
-        run: npm install -g expo-cli
-
-      - name: Authenticate with Expo
+      - name: Log ind i Expo (EAS)
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: expo login --username ${{ secrets.EXPO_USERNAME }} --password ${{ secrets.EXPO_PASSWORD }}
+        run: eas whoami || eas login --token $EXPO_TOKEN
 
-      - name: Expo Prebuild (optional)
-        run: expo prebuild
+      - name: Kør build med EAS
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --non-interactive
 
-      - name: Run Expo Build
-        run: expo build:android --non-interactive
+      # Du kan tilføje dette, hvis du vil have preview links eller deploy OTA updates:
+      # - name: Udgiv OTA update (valgfrit)
+      #   run: eas update --branch main --non-interactive
 
-      # - name: Run tests (disabled for now)
-      #   run: npm test
-
-      # - name: Upload artifacts (optional)
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: build-artifacts
-      #     path: dist/
