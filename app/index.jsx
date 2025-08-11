@@ -24,16 +24,18 @@ export default function Index() {
     Inter_500Medium,
   })
 
+
+  // READ (Henter data fra AsyncStorage når appen starter)
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const jsonValue = await AsyncStorage.getItem("TodoApp")
-        const storageTodos = jsonValue != null ? JSON.parse(jsonValue) : null;
+        const jsonValue = await AsyncStorage.getItem("TodoApp") // Læs lagrede data som JSON-string
+        const storageTodos = jsonValue != null ? JSON.parse(jsonValue) : null; // Konverter string til array
 
         if (storageTodos && storageTodos.length) {
-          setTodos(storageTodos.sort((a, b) => b.id - a.id))
+          setTodos(storageTodos.sort((a, b) => b.id - a.id)) // Hvis der er data, brug dem
         } else {
-          setTodos(data.sort((a, b) => b.id - a.id))
+          setTodos(data.sort((a, b) => b.id - a.id)) // Ellers brug standard-data
         }
       } catch (e) {
         console.error(e)
@@ -43,11 +45,14 @@ export default function Index() {
     fetchData()
   }, [data])
 
+
+  // WRITE (Gemmer alle ændringer i AsyncStorage)
+  // Her skrives hele "todos" arrayet til permanent lager, så det bevares efter genstart
   useEffect(() => {
     const storeData = async () => {
       try {
-        const jsonValue = JSON.stringify(todos)
-        await AsyncStorage.setItem("TodoApp", jsonValue)
+        const jsonValue = JSON.stringify(todos) // Konverter array til string
+        await AsyncStorage.setItem("TodoApp", jsonValue) // Skriv string til lager
       } catch (e) {
         console.error(e)
       }
@@ -62,20 +67,32 @@ export default function Index() {
 
   const styles = createStyles(theme, colorScheme)
 
+
+  // CREATE (Opretter en ny todo i state)
   const addTodo = () => {
     if (text.trim()) {
-      const newId = todos.length > 0 ? todos[0].id + 1 : 1;
-      setTodos([{ id: newId, title: text, completed: false }, ...todos])
-      setText('')
+      const newId = todos.length > 0 ? todos[0].id + 1 : 1; // Finder nyt ID (1 højere end det største ID)
+      setTodos([{ id: newId, title: text, completed: false }, ...todos]) // Tilføj ny todo først i arrayet
+      setText('') // Nulstil inputfeltet
     }
   }
 
+
+  // UPDATE (Opdaterer en eksisterende todo ved at skifte dens "completed"-status)
   const toggleTodo = (id) => {
-    setTodos(todos.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo))
+    setTodos(
+      todos.map(todo =>
+        todo.id === id
+          ? { ...todo, completed: !todo.completed } // Skifter mellem færdig og ikke færdig
+          : todo
+      )
+    )
   }
 
+
+  // DELETE (Sletter en todo fra state)
   const removeTodo = (id) => {
-    setTodos(todos.filter(todo => todo.id !== id))
+    setTodos(todos.filter(todo => todo.id !== id)) // Fjerner todo med det angivne ID
   }
 
   const handlePress = (id) => {
